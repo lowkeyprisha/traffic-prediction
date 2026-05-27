@@ -157,4 +157,4 @@ This will generate `submission.csv` in the same folder.
 
 ## 👩‍💻 Author
 
-**Prisha** — connect on [GitHub](https://github.com/YOUR_USERNAME)
+**Prisha** — connect on [GitHub](https://github.com/lowkeyprisha)
