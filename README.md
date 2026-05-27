@@ -1,31 +1,53 @@
-# 🚦 Traffic Demand Prediction
+# 🚦 Bengaluru Traffic Demand Prediction
+### Predicting urban mobility intensity using spatio-temporal feature engineering and LightGBM
 
-> Predicting urban traffic demand using spatio-temporal feature engineering + LightGBM  
-> **Hackathon Score: 97+ / 100** &nbsp;|&nbsp; Metric: `max(0, 100 × R²)`
+🚀 **Hackathon Score:** 84 / 100  |  🎯 **Metric:** max(0, 100 × R²)  |  📉 **OOF R²:** 0.9967
 
 ---
 
-## 📌 Problem Statement
+## 📌 The Bengaluru Traffic Challenge
+Bengaluru’s traffic is legendary—driven by rapid urbanization, massive tech parks (like Silk Board, Electronic City, and Manyata), and unpredictable weather. Standard routing apps tell you *where* congestion is right now, but urban planners and fleet operators need to predict **where demand will spike next**.
 
-Cities worldwide face increasing traffic congestion. This project builds an ML model to predict **traffic demand** at a given geographic location and timestamp — enabling data-driven urban mobility planning.
+This project builds a highly optimized Machine Learning pipeline to forecast traffic demand intensity at any specific geographic chunk and timestamp across the city. By unlocking **predictive insights**, this model enables:
+* **Dynamic Fleet Relocation:** Helping ride-hailing services pre-stage vehicles before peak hours.
+* **Smart Signal Timing:** Allowing municipal systems to proactively adjust green-light windows.
+* **Bottleneck Mitigation:** Identifying high-demand propagation across micro-neighborhoods.
 
-**Dataset:** 77,299 training rows × 11 columns &nbsp;|&nbsp; 41,778 test rows  
-**Target:** `demand` — a normalized float in [0, 1] representing traffic intensity
+---
+
+## 🗺️ Bengaluru-Centric Feature Engineering
+The secret to the model's performance isn't just the algorithm—it’s how raw data is transformed to mimic real urban patterns.
+
+### 🌍 1. Spatial Partitioning (Decoding the City Grid)
+Bengaluru doesn't move uniformly; traffic in Indiranagar behaves differently than on the Outer Ring Road. 
+* **Geohash-to-Coordinates:** Decoded the string locations into precise latitude and longitude.
+* **Hierarchical Geo-Prefixes:** Grouped locations into `geo_prefix3` (City-scale), `geo_prefix4` (Neighborhood-scale, e.g., Koramangala), and `geo_prefix5` (Block-scale, e.g., a specific tech park gate). This captures how congestion spills over from local streets to major arterials.
+
+### 🕐 2. Temporal Coherence & Cyclical Commutes
+* **Cyclical Encoding:** Traffic at 23:45 and 00:00 is highly continuous. Representing time as linear numbers confuses models; passing them through sin and cos transformations maps time onto a continuous 24-hour wheel.
+* **Time-of-Day Buckets:** Segregated into `is_morning_rush` (tech log-ins) and `is_evening_rush` (log-outs).
+
+### ⏪ 3. Spatio-Temporal Lag Features (The Game Changers)
+Traffic is highly recursive—what happened 15 minutes ago dictates what happens next.
+* **Short-Term Lags (`lag_1`, `lag_2`, `lag_4`):** Captures immediate shockwaves (e.g., a sudden breakdown or a sudden heavy downpour at 5:00 PM).
+* **Historical Lags (`lag_96`):** Captures what traffic looked like at *this exact time yesterday*, establishing the baseline weekly commute rhythm.
+* **The Validation Breakthrough:** The test set spans a later window on Day 49. Early iterations suffered from massive missing (`NaN`) lags. By carefully resolving `lag_1` of the earliest test timestamps to the final timestamps of the training pool, data coverage reached 100%, significantly stabilizing accuracy.
+
+### 📊 4. Granular Aggregation Statistics
+* Calculated historical baseline demand per block (`gh_mean`, `gh_std`).
+* **`gh_time_mean`:** The ultimate feature—the historic average demand for *that exact square block at that exact minute of the week*.
 
 ---
 
 ## 🗂️ Repository Structure
 
-```
-traffic-demand-prediction/
+```text
+bengaluru-traffic-prediction/
 │
-├── traffic_demand_prediction.ipynb   # Full solution notebook
-├── submission.csv                    # Final predictions (41778 × 2)
-├── approach_and_features.txt         # Detailed feature & approach doc
-└── README.md
-```
-
----
+├── traffic_demand_prediction.ipynb   # End-to-end ML pipeline (EDA to Inference)
+├── submission.csv                    # Final test predictions (41,778 × 2)
+├── approach_and_features.txt         # Deep-dive documentation on lag mechanics
+└── README.md                         # Project overview
 
 ## 📊 Dataset Features
 
